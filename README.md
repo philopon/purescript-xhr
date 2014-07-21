@@ -6,8 +6,6 @@
 
     type Callback r = XMLHttpRequest -> EffXHR r Unit
 
-    type Callbacks r = { onLoadEnd :: Callback r, onTimeout :: Callback r, onLoad :: Callback r, onError :: Callback r, onAbort :: Callback r, onProgress :: Callback r, onLoadStart :: Callback r, onReadyStateChange :: Callback r }
-
     type EffXHR r = Eff (xhr :: XHR | r)
 
     type Method  = String
@@ -19,6 +17,8 @@
       LOADING :: ReadyState
       DONE :: ReadyState
       UNKNOWN :: Number -> ReadyState
+
+    type RequestConfig r = { withCredentials :: Boolean, requestTimeout :: Number, onLoadEnd :: Callback r, onTimeout :: Callback r, onLoad :: Callback r, onError :: Callback r, onAbort :: Callback r, onProgress :: Callback r, onLoadStart :: Callback r, onReadyStateChange :: Callback r }
 
     data RequestType where
       QueryParam :: RequestType
@@ -41,17 +41,21 @@
 
 ### Values
 
-    defaultCallbacks :: forall r. Callbacks r
+    abort :: forall r. XMLHttpRequest -> EffXHR r Unit
 
-    delete :: forall r o. URI -> Callbacks r -> {  | o } -> EffXHR r Unit
+    defaultConfig :: forall r. RequestConfig r
 
-    get :: forall r o. URI -> Callbacks r -> {  | o } -> EffXHR r Unit
+    delete :: forall r o. RequestConfig r -> URI -> {  | o } -> EffXHR r Unit
 
-    post :: forall r o. RequestType -> URI -> Callbacks r -> {  | o } -> EffXHR r Unit
+    get :: forall r o. RequestConfig r -> URI -> {  | o } -> EffXHR r Unit
+
+    post :: forall r o. RequestConfig r -> URI -> {  | o } -> EffXHR r Unit
+
+    put :: forall r o. RequestConfig r -> URI -> {  | o } -> EffXHR r Unit
 
     readyState :: XMLHttpRequest -> ReadyState
 
-    request :: forall r o. Method -> RequestType -> URI -> Callbacks r -> {  | o } -> EffXHR r Unit
+    request :: forall r h o. Method -> RequestType -> {  | h } -> RequestConfig r -> URI -> {  | o } -> EffXHR r Unit
 
     responseText :: XMLHttpRequest -> String
 

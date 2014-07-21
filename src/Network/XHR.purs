@@ -1,20 +1,27 @@
 module Network.XHR
     ( XHR(..)
     , EffXHR(..)
-    , ReadyState(..)
     , URI(..)
+
     , XMLHttpRequest(..)
+    , ReadyState(..)
+
     , Callback(..)
-    , Callbacks(..)
-    , RequestType(..)
+
     , Method(..)
+    , RequestType(..)
+
+    , RequestConfig(..)
+    , defaultConfig
 
     , status, statusText
     , readyState
     , responseText, responseXML
-    , get, post, delete
+
+    , abort
+
     , request
-    , defaultCallbacks
+    , get, post, delete, put
     ) where
 
 import Control.Monad.Eff
@@ -93,6 +100,12 @@ foreign import send
     \           return xhr.send(body);\
     \}}}" :: forall body r. body -> XMLHttpRequest -> EffXHR r Unit
 
+foreign import abort
+    "function abort (xhr) {\
+    \   return function () {\
+    \       xhr.abort();\
+    \}}" :: forall r. XMLHttpRequest -> EffXHR r Unit
+
 foreign import jsNull "var jsNull = null;" :: forall b. b
 
 foreign import unsafeGetter
@@ -101,6 +114,14 @@ foreign import unsafeGetter
     \       return obj[key];\
     \}}" :: forall object key value. key -> object -> value
 
+foreign import unsafeSetter
+    "function unsafeSetter (key) {\
+    \   return function(value) {\
+    \       return function(obj) {\
+    \           return function() {\
+    \               obj[key] = value;\
+    \}}}}" :: forall r value object. String -> value -> object -> Eff r Unit
+
 foreign import getResponseHeader
     "function getResponseHeader (header) {\
     \   return function (xhr) {\
@@ -108,13 +129,13 @@ foreign import getResponseHeader
     \           return xhr.getResponseHeader(header);\
     \}}}" :: forall r. String -> XMLHttpRequest -> EffXHR r String
 
-foreign import setRequestHeader
-    "function setRequestHeader (key) {\
-    \   return function (value) {\
+foreign import setRequestHeaders
+    "function setRequestHeaders (obj) {\
     \       return function (xhr) {\
     \           return function() {\
-    \               xhr.setRequestHeader(key, value);\
-    \}}}}" :: forall r. String -> String -> XMLHttpRequest -> EffXHR r Unit
+    \               for(var key in obj) {\
+    \                   xhr.setRequestHeader(key, obj[key]);\
+    \}}}}" :: forall o r. { |o} -> XMLHttpRequest -> EffXHR r Unit
 
 foreign import objectToString
     "function objectToString (obj) {\
@@ -156,53 +177,63 @@ responseXML :: XMLHttpRequest -> String
 responseXML o = unsafeGetter "responseXML" o
 
 preProcess :: forall r. Method -> URI
-           -> Callbacks r -> EffXHR r XMLHttpRequest
-preProcess method uri cb = do
+           -> RequestConfig r -> EffXHR r XMLHttpRequest
+preProcess method uri cfg = do
     r <- newXMLHttpRequest
-    assignCallback "onreadystatechange" r cb.onReadyStateChange
-    assignCallback "onloadstart" r cb.onLoadStart
-    assignCallback "onprogress" r cb.onProgress
-    assignCallback "onabort" r cb.onAbort
-    assignCallback "onerror" r cb.onError
-    assignCallback "onload" r cb.onLoad
-    assignCallback "ontimeout" r cb.onTimeout
-    assignCallback "onloadend" r cb.onLoadEnd
+    assignCallback "onreadystatechange" r cfg.onReadyStateChange
+    assignCallback "onloadstart" r cfg.onLoadStart
+    assignCallback "onprogress" r cfg.onProgress
+    assignCallback "onabort" r cfg.onAbort
+    assignCallback "onerror" r cfg.onError
+    assignCallback "onload" r cfg.onLoad
+    assignCallback "ontimeout" r cfg.onTimeout
+    assignCallback "onloadend" r cfg.onLoadEnd
+    unsafeSetter "timeout" cfg.requestTimeout r
+    unsafeSetter "withCredentials" cfg.withCredentials r
     open method uri r
     return r
-
-request :: forall r o. Method -> RequestType -> URI
-        -> Callbacks r -> { | o} -> EffXHR r Unit
-request method QueryParam uri cb prm = do
-    let p = objectToString prm
-        p' = if p == "" then "" else "?" ++ p
-    r <- preProcess method (uri ++ p') cb
-    send jsNull r
-request method UrlEncoded uri cb bdy = do
-    let b = objectToString bdy
-    r <- preProcess method uri cb
-    setRequestHeader "Content-Type" "application/x-www-form-urlencoded" r
-    send b r
-request method Multipart uri cb bdy = do
-    f <- newFormData
-    appendForm bdy f
-    r <- preProcess method uri cb
-    send f r
-
-get :: forall r o. URI -> Callbacks r -> { |o} -> EffXHR r Unit
-get = request "GET" QueryParam
-
-post :: forall r o. RequestType -> URI -> Callbacks r -> { |o} -> EffXHR r Unit
-post = request "POST"
-
-delete :: forall r o. URI -> Callbacks r -> { |o} -> EffXHR r Unit
-delete = request "DELETE" QueryParam
 
 data RequestType
     = QueryParam
     | UrlEncoded
     | Multipart
 
-type Callbacks r =
+request :: forall r h o. Method -> RequestType -> {|h} -> RequestConfig r -> URI
+        -> {|o} -> EffXHR r Unit
+request method typ h cfg uri prm = case typ of
+    QueryParam -> do
+        let p = objectToString prm
+            p' = if p == "" then "" else "?" ++ p
+        r <- preProcess method (uri ++ p') cfg
+        setRequestHeaders h r
+        send jsNull r
+
+    UrlEncoded -> do
+        let b = objectToString prm
+        r <- preProcess method uri cfg
+        setRequestHeaders h r
+        setRequestHeaders {"Content-Type": "application/x-www-form-urlencoded"} r
+        send b r
+    Multipart -> do
+        f <- newFormData
+        appendForm prm f
+        r <- preProcess method uri cfg
+        setRequestHeaders h r
+        send f r
+
+get :: forall r o. RequestConfig r -> URI -> { |o} -> EffXHR r Unit
+get = request "GET" QueryParam {}
+
+post :: forall r o. RequestConfig r -> URI -> { |o} -> EffXHR r Unit
+post = request "POST" UrlEncoded {}
+
+delete :: forall r o. RequestConfig r -> URI -> { |o} -> EffXHR r Unit
+delete = request "DELETE" QueryParam {}
+
+put :: forall r o. RequestConfig r -> URI -> { |o} -> EffXHR r Unit
+put = request "PUT" UrlEncoded {}
+
+type RequestConfig r =
     { onReadyStateChange :: Callback r
     , onLoadStart        :: Callback r
     , onProgress         :: Callback r
@@ -211,10 +242,13 @@ type Callbacks r =
     , onLoad             :: Callback r
     , onTimeout          :: Callback r
     , onLoadEnd          :: Callback r
+
+    , requestTimeout     :: Number
+    , withCredentials    :: Boolean
     }
 
-defaultCallbacks :: forall r. Callbacks r
-defaultCallbacks =
+defaultConfig :: forall r. RequestConfig r
+defaultConfig =
     { onReadyStateChange: jsNull
     , onLoadStart       : jsNull
     , onProgress        : jsNull
@@ -223,10 +257,7 @@ defaultCallbacks =
     , onLoad            : jsNull
     , onTimeout         : jsNull
     , onLoadEnd         : jsNull
+    
+    , requestTimeout    : 0
+    , withCredentials   : false
     }
-
-{-
-main = do
-    let cbs = defaultCallbacks { onLoadEnd = \x -> print (responseText x) }
-    post Multipart "/api/12" cbs {test: 24}
-    -}
