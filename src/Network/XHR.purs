@@ -7,6 +7,7 @@ module Network.XHR
     , Callback(..)
     , Callbacks(..)
     , RequestType(..)
+    , Method(..)
 
     , status, statusText
     , readyState
@@ -16,7 +17,6 @@ module Network.XHR
     , defaultCallbacks
     ) where
 
-import Control.Monad
 import Control.Monad.Eff
 
 type Method = String

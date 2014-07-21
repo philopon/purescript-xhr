@@ -10,6 +10,8 @@
 
     type EffXHR r = Eff (xhr :: XHR | r)
 
+    type Method  = String
+
     data ReadyState where
       UNSENT :: ReadyState
       OPENED :: ReadyState
