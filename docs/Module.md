@@ -11,8 +11,9 @@
       UrlEncoded :: {  | r } -> Body r
       Multipart :: {  | r } -> Body r
 
-    newtype Response where
-      Response :: I.XHR -> Response
+    newtype Response
+
+    type URL  = String
 
 
 ### Values
@@ -20,6 +21,8 @@
     ajax :: forall r a b. AjaxOptions r -> {  | a } -> Body b -> I.EffAjax r Unit
 
     defaultAjaxOptions :: forall r. AjaxOptions r
+
+    get :: forall r a. AjaxOptions r -> URL -> {  | a } -> I.EffAjax r Unit
 
     getAllResponseHeaders :: forall r. Response -> I.EffAjax r String
 
@@ -34,6 +37,18 @@
     getStatus :: forall r. Response -> I.EffAjax r Number
 
     getStatusText :: forall r. Response -> I.EffAjax r String
+
+    onDone :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+
+    onHeaderReceived :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+
+    onLoading :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+
+    onOpened :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+
+    onUnsent :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+
+    post :: forall r a b. AjaxOptions r -> URL -> {  | a } -> Body b -> I.EffAjax r Unit
 
 
 ## Module Network.XHR.Internal
@@ -57,6 +72,11 @@
       UNKNOWN :: Number -> ReadyState
 
     data XHR :: *
+
+
+### Type Class Instances
+
+    instance eqReadyState :: Eq ReadyState
 
 
 ### Values
