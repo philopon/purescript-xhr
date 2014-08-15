@@ -17,5 +17,14 @@
     "bower.json",
     "Gruntfile.js",
     "package.json"
-  ]
+  ],
+  "dependencies": {
+    "purescript-maybe":  "*",
+    "purescript-tuples": "*",
+    "purescript-foldable-traversable": "*"
+  },
+  "devDependencies": {
+    "purescript-mocha": "*",
+    "purescript-chai": "*"
+  }
 }
