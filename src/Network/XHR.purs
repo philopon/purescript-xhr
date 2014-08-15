@@ -1,5 +1,5 @@
 module Network.XHR
-    ( Body(..), AjaxOptions(..), Response(), URL(..)
+    ( Body(..), AjaxOptions(..), Response(), URL(..), EffAjax(..)
 
     , getAllResponseHeaders, getResponseHeader
     , getReadyState
@@ -20,6 +20,8 @@ import Data.Maybe
 import Data.Foldable
 import Data.Tuple
 
+type EffAjax r = Eff (ajax :: I.Ajax | r)
+
 type URL = String
 
 data Body r
@@ -39,35 +41,35 @@ type AjaxOptions r =
     , user        :: String
     , password    :: String
     
-    , onAbort            :: Response -> I.EffAjax r Unit
-    , onError            :: Response -> I.EffAjax r Unit
-    , onLoad             :: Response -> I.EffAjax r Unit
-    , onLoadEnd          :: Response -> I.EffAjax r Unit
-    , onProgress         :: Response -> I.EffAjax r Unit
-    , onReadyStateChange :: I.ReadyState -> Response -> I.EffAjax r Unit
-    , onTimeout          :: Response -> I.EffAjax r Unit
+    , onAbort            :: Response -> EffAjax r Unit
+    , onError            :: Response -> EffAjax r Unit
+    , onLoad             :: Response -> EffAjax r Unit
+    , onLoadEnd          :: Response -> EffAjax r Unit
+    , onProgress         :: Response -> EffAjax r Unit
+    , onReadyStateChange :: I.ReadyState -> Response -> EffAjax r Unit
+    , onTimeout          :: Response -> EffAjax r Unit
     }
 
 newtype Response = Response I.XHR
-getAllResponseHeaders :: forall r. Response -> I.EffAjax r String
+getAllResponseHeaders :: forall r. Response -> EffAjax r String
 getAllResponseHeaders (Response xhr) = I.getAllResponseHeaders xhr
 
-getResponseHeader :: forall r. String -> Response -> I.EffAjax r String
+getResponseHeader :: forall r. String -> Response -> EffAjax r String
 getResponseHeader k   (Response xhr) = I.getResponseHeader k xhr
 
-getReadyState :: forall r. Response -> I.EffAjax r I.ReadyState
+getReadyState :: forall r. Response -> EffAjax r I.ReadyState
 getReadyState         (Response xhr) = I.getReadyState xhr
 
-getResponseText :: forall r. Response -> I.EffAjax r String
+getResponseText :: forall r. Response -> EffAjax r String
 getResponseText       (Response xhr) = I.getResponseText xhr
 
-getResponseXML :: forall r. Response -> I.EffAjax r String
+getResponseXML :: forall r. Response -> EffAjax r String
 getResponseXML        (Response xhr) = I.getResponseXML xhr
 
-getStatus :: forall r. Response -> I.EffAjax r Number
+getStatus :: forall r. Response -> EffAjax r Number
 getStatus             (Response xhr) = I.getStatus xhr
 
-getStatusText :: forall r. Response -> I.EffAjax r String
+getStatusText :: forall r. Response -> EffAjax r String
 getStatusText         (Response xhr) = I.getStatusText xhr
 
 defaultAjaxOptions :: forall r. AjaxOptions r
@@ -92,7 +94,7 @@ defaultAjaxOptions =
     , onTimeout:          \_ ->   return unit
     }
 
-ajax :: forall r a b. AjaxOptions r -> {|a} -> Body b -> I.EffAjax r Unit
+ajax :: forall r a b. AjaxOptions r -> {|a} -> Body b -> EffAjax r Unit
 ajax conf params body = do
     xhr <- I.newXMLHttpRequest
     I.open openConfig xhr
@@ -138,37 +140,37 @@ ajax conf params body = do
                        Tuple "IF-Modified-Since" "Thu, 01 Jun 1970 00:00:00 GMT":
                        conf.headers
 
-get :: forall r a. AjaxOptions r -> URL -> {|a} -> I.EffAjax r Unit
+get :: forall r a. AjaxOptions r -> URL -> {|a} -> EffAjax r Unit
 get c u p = ajax c { method = "GET", url = u } p NoBody
 
-post :: forall r a b. AjaxOptions r -> URL -> {|a} -> Body b -> I.EffAjax r Unit
+post :: forall r a b. AjaxOptions r -> URL -> {|a} -> Body b -> EffAjax r Unit
 post conf u = ajax conf { method = "POST", url = u }
 
-onUnsent :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+onUnsent :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
 onUnsent act rs res = 
     if rs == I.UNSENT
     then act res
     else return unit
 
-onOpened :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+onOpened :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
 onOpened act rs res = 
     if rs == I.OPENED
     then act res
     else return unit
 
-onHeaderReceived :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+onHeaderReceived :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
 onHeaderReceived act rs res = 
     if rs == I.HEADERSRECEIVED
     then act res
     else return unit
 
-onLoading :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+onLoading :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
 onLoading act rs res = 
     if rs == I.LOADING
     then act res
     else return unit
 
-onDone :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+onDone :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
 onDone act rs res = 
     if rs == I.DONE
     then act res

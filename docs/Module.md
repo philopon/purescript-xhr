@@ -4,12 +4,14 @@
 
 ### Types
 
-    type AjaxOptions r = { onTimeout :: Response -> I.EffAjax r Unit, onReadyStateChange :: I.ReadyState -> Response -> I.EffAjax r Unit, onProgress :: Response -> I.EffAjax r Unit, onLoadEnd :: Response -> I.EffAjax r Unit, onLoad :: Response -> I.EffAjax r Unit, onError :: Response -> I.EffAjax r Unit, onAbort :: Response -> I.EffAjax r Unit, password :: String, user :: String, async :: Boolean, credentials :: Boolean, timeout :: Number, cache :: Boolean, headers :: [Tuple String String], url :: String, method :: String }
+    type AjaxOptions r = { onTimeout :: Response -> EffAjax r Unit, onReadyStateChange :: I.ReadyState -> Response -> EffAjax r Unit, onProgress :: Response -> EffAjax r Unit, onLoadEnd :: Response -> EffAjax r Unit, onLoad :: Response -> EffAjax r Unit, onError :: Response -> EffAjax r Unit, onAbort :: Response -> EffAjax r Unit, password :: String, user :: String, async :: Boolean, credentials :: Boolean, timeout :: Number, cache :: Boolean, headers :: [Tuple String String], url :: String, method :: String }
 
     data Body r where
       NoBody :: Body r
       UrlEncoded :: {  | r } -> Body r
       Multipart :: {  | r } -> Body r
+
+    type EffAjax r = Eff (ajax :: I.Ajax | r)
 
     newtype Response
 
@@ -18,37 +20,37 @@
 
 ### Values
 
-    ajax :: forall r a b. AjaxOptions r -> {  | a } -> Body b -> I.EffAjax r Unit
+    ajax :: forall r a b. AjaxOptions r -> {  | a } -> Body b -> EffAjax r Unit
 
     defaultAjaxOptions :: forall r. AjaxOptions r
 
-    get :: forall r a. AjaxOptions r -> URL -> {  | a } -> I.EffAjax r Unit
+    get :: forall r a. AjaxOptions r -> URL -> {  | a } -> EffAjax r Unit
 
-    getAllResponseHeaders :: forall r. Response -> I.EffAjax r String
+    getAllResponseHeaders :: forall r. Response -> EffAjax r String
 
-    getReadyState :: forall r. Response -> I.EffAjax r I.ReadyState
+    getReadyState :: forall r. Response -> EffAjax r I.ReadyState
 
-    getResponseHeader :: forall r. String -> Response -> I.EffAjax r String
+    getResponseHeader :: forall r. String -> Response -> EffAjax r String
 
-    getResponseText :: forall r. Response -> I.EffAjax r String
+    getResponseText :: forall r. Response -> EffAjax r String
 
-    getResponseXML :: forall r. Response -> I.EffAjax r String
+    getResponseXML :: forall r. Response -> EffAjax r String
 
-    getStatus :: forall r. Response -> I.EffAjax r Number
+    getStatus :: forall r. Response -> EffAjax r Number
 
-    getStatusText :: forall r. Response -> I.EffAjax r String
+    getStatusText :: forall r. Response -> EffAjax r String
 
-    onDone :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+    onDone :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
 
-    onHeaderReceived :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+    onHeaderReceived :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
 
-    onLoading :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+    onLoading :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
 
-    onOpened :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+    onOpened :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
 
-    onUnsent :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+    onUnsent :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
 
-    post :: forall r a b. AjaxOptions r -> URL -> {  | a } -> Body b -> I.EffAjax r Unit
+    post :: forall r a b. AjaxOptions r -> URL -> {  | a } -> Body b -> EffAjax r Unit
 
 
 ## Module Network.XHR.Internal
