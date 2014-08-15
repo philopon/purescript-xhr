@@ -35,10 +35,18 @@ module.exports = function(grunt) {
     },
 
     watch: {
-      test: {
+      dev: {
         files: ["src/**/*.purs", "tests/**/*"],
         tasks: ['psc:tests', 'express:test'],
         options: {spawn: false}
+      }
+    },
+
+    mocha_phantomjs: {
+      test: {
+        options: {
+          urls: ['http://localhost:<%=port%>']
+        }
       }
     },
 
@@ -60,8 +68,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks("grunt-execute");
   grunt.loadNpmTasks("grunt-express-server");
   grunt.loadNpmTasks("grunt-contrib-watch");
+  grunt.loadNpmTasks('grunt-mocha-phantomjs');
 
   grunt.registerTask("make", ["pscMake", "dotPsci", "docgen"]);
-  grunt.registerTask("test", ["psc:tests", 'express:test', 'watch:test']);
+  grunt.registerTask("dev", ["psc:tests", 'express:test', 'watch:dev']);
+  grunt.registerTask("test", ["psc:tests", 'express:test', 'mocha_phantomjs:test']);
   grunt.registerTask("default", ["make"]);
 };

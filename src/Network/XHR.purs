@@ -1,4 +1,17 @@
-module Network.XHR where
+module Network.XHR
+    ( Body(..), AjaxOptions(..), Response(), URL(..)
+
+    , getAllResponseHeaders, getResponseHeader
+    , getReadyState
+    , getResponseText, getResponseXML
+    , getStatus, getStatusText
+
+    , defaultAjaxOptions, ajax
+
+    , get, post
+
+    , onUnsent, onOpened, onHeaderReceived, onLoading, onDone
+    ) where
 
 import Control.Monad.Eff
 import qualified Network.XHR.Internal as I
@@ -6,6 +19,8 @@ import qualified Network.XHR.Internal as I
 import Data.Maybe
 import Data.Foldable
 import Data.Tuple
+
+type URL = String
 
 data Body r
     = NoBody
@@ -122,3 +137,39 @@ ajax conf params body = do
                        Tuple "Cache-Control" "no-cache":
                        Tuple "IF-Modified-Since" "Thu, 01 Jun 1970 00:00:00 GMT":
                        conf.headers
+
+get :: forall r a. AjaxOptions r -> URL -> {|a} -> I.EffAjax r Unit
+get c u p = ajax c { method = "GET", url = u } p NoBody
+
+post :: forall r a b. AjaxOptions r -> URL -> {|a} -> Body b -> I.EffAjax r Unit
+post conf u = ajax conf { method = "POST", url = u }
+
+onUnsent :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+onUnsent act rs res = 
+    if rs == I.UNSENT
+    then act res
+    else return unit
+
+onOpened :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+onOpened act rs res = 
+    if rs == I.OPENED
+    then act res
+    else return unit
+
+onHeaderReceived :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+onHeaderReceived act rs res = 
+    if rs == I.HEADERSRECEIVED
+    then act res
+    else return unit
+
+onLoading :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+onLoading act rs res = 
+    if rs == I.LOADING
+    then act res
+    else return unit
+
+onDone :: forall r. (Response -> I.EffAjax r Unit) -> I.ReadyState -> Response -> I.EffAjax r Unit
+onDone act rs res = 
+    if rs == I.DONE
+    then act res
+    else return unit

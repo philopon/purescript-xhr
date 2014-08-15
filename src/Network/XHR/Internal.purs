@@ -124,6 +124,16 @@ data ReadyState
     | DONE
     | UNKNOWN Number
 
+instance eqReadyState :: Eq ReadyState where
+    (==) UNSENT UNSENT = true
+    (==) OPENED OPENED = true
+    (==) HEADERSRECEIVED HEADERSRECEIVED = true
+    (==) LOADING LOADING = true
+    (==) DONE DONE = true
+    (==) (UNKNOWN a) (UNKNOWN b) = a == b
+    (==) _ _ = false
+    (/=) a b = not (a == b)
+
 parseReadyState :: Number -> ReadyState
 parseReadyState i = case i of
     0 -> UNSENT

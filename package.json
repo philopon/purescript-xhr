@@ -16,6 +16,7 @@
     "grunt-contrib-watch": "^0.6.1",
     "grunt-execute": "~0.1.5",
     "grunt-express-server": "^0.4.19",
+    "grunt-mocha-phantomjs": "^0.6.0",
     "grunt-purescript": "~0.5.1",
     "mocha": "^1.21.4"
   }

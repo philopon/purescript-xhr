@@ -9,7 +9,13 @@
     <script src="/chai/chai.js"></script>
     <script>mocha.setup('bdd')</script>
     <script src="/js/tests.js"></script>
-    <script>$(function(){mocha.run();})</script>
+    <script>$(function(){
+if (window.mochaPhantomJS) {
+  mochaPhantomJS.run();
+} else {
+mocha.run();
+}
+})</script>
   </head>
   <body>
     <div id="mocha"></div>
