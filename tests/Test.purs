@@ -3,8 +3,13 @@ module Main where
 import Control.Monad.Eff
 import Network.XHR
 import qualified Network.XHR.Internal as I
-import Test.Mocha
+import Test.Mocha (itAsync, DoneToken(..), Done(..))
 import Test.Chai
+
+foreign import itIs
+  "function itIs(d){ return function(){d()}; }" :: forall eff. 
+                                       DoneToken -> 
+                                       Eff (done :: Done | eff) Unit
 
 checkLoadEnd bdy ct st stt res = do
     getResponseText res >>= toEqual (expect bdy)
