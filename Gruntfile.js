@@ -59,7 +59,7 @@ module.exports = function(grunt) {
         src: ["tests/Test.purs", "<%=libFiles%>"],
         dest: "tmp/tests.js"
       }
-    },
+    }
 
   });
 

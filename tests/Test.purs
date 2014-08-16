@@ -3,7 +3,7 @@ module Main where
 import Control.Monad.Eff
 import Network.XHR
 import qualified Network.XHR.Internal as I
-import Test.Mocha (it, itAsync, DoneToken(..), Done(..), describe)
+import Test.Mocha (it, itAsync, itSkip, DoneToken(..), Done(..), describe)
 import Test.Chai
 import Data.Maybe
 import Data.Tuple
@@ -12,6 +12,9 @@ foreign import itIs
   "function itIs(d){ return function(){d()}; }" :: forall eff. 
                                        DoneToken -> 
                                        Eff (done :: Done | eff) Unit
+
+foreign import isPhantom
+    "var isPhantom = !!window.mochaPhantomJS;" :: Boolean
 
 checkLoadEnd mbbdy ct st stt res = do
     case mbbdy of
@@ -85,11 +88,13 @@ main = do
                 { onAbort = \_ -> itIs done } "/api/no_param" {}
             abort task
 
-        itAsync "timeout" $ \done ->
-            get defaultAjaxOptions
-            { timeout = 1
-            , onTimeout = \res -> itIs done
-            } "/api/no_param" {}
+        if isPhantom
+            then itSkip "timeout" (return unit)
+            else itAsync "timeout" $ \done ->
+                    get defaultAjaxOptions
+                    { timeout   = 1
+                    , onTimeout = \res -> itIs done
+                    } "/api/no_param" {}
 
         itAsync "no XML" $ \done ->
             get defaultAjaxOptions
@@ -98,6 +103,3 @@ main = do
                 getResponseXML res >>= toEqual (expect Nothing)
                 itIs done
             } "/api/no_param" {}
-
-
-
