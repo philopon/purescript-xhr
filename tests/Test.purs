@@ -54,14 +54,14 @@ main = do
             { onReadyStateChange = onDone $ \res -> do
                 checkLoadEnd (Just "q body: foo") "text/html; charset=utf-8" 200 "OK" res
                 itIs done
-            } "/api/body" {} (UrlEncoded {q: "foo"})
+            } "/api/body" {} (urlEncoded {q: "foo"})
 
         itAsync "multipart" $ \done ->
             post defaultAjaxOptions
             { onReadyStateChange = onDone $ \res -> do
                 checkLoadEnd (Just "q body: foo") "text/html; charset=utf-8" 200 "OK" res
                 itIs done
-            } "/api/body" {} (Multipart {q: "foo"})
+            } "/api/body" {} (multipart {q: "foo"})
 
         it "sync" $ do
             task <- get defaultAjaxOptions{async = false} "/api/no_param" {}
@@ -81,7 +81,7 @@ main = do
             { onReadyStateChange = onDone $ \res -> do
                 checkLoadEnd (Just "Cannot POST /no/route\n") "text/html; charset=utf-8" 404 "Not Found" res
                 itIs done
-            } "/no/route" {} NoBody
+            } "/no/route" {} noBody
 
         itAsync "aborted" $ \done -> do
             task <- get defaultAjaxOptions

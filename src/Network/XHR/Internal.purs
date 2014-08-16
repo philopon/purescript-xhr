@@ -32,7 +32,7 @@ module Network.XHR.Internal
 import Control.Monad.Eff
 import Data.Function
 import Data.Maybe
-import Network.XHR.ReadyState
+import Network.XHR.Types
 
 foreign import data XHR  :: *
 foreign import data FormData :: *

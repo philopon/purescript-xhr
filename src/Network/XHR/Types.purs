@@ -1,4 +1,4 @@
-module Network.XHR.ReadyState where
+module Network.XHR.Types where
 
 data ReadyState
     = UNSENT
@@ -26,3 +26,10 @@ parseReadyState i = case i of
     3 -> LOADING
     4 -> DONE
     i -> UNKNOWN i
+
+data Body a
+    = NoBody
+    | UrlEncoded a
+    | Multipart  a
+
+

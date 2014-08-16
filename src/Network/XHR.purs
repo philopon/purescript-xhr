@@ -1,5 +1,7 @@
 module Network.XHR
-    ( Body(..), AjaxOptions(..), Response(), URL(..)
+    ( multipart, urlEncoded, noBody
+    
+    , AjaxOptions(..), Response(), URL(..)
     , EffAjax(..), Query(), OnReadyStateChange(), XHRTask()
     , HasReadyState
 
@@ -20,7 +22,7 @@ module Network.XHR
 
 import Control.Monad.Eff
 import qualified Network.XHR.Internal as I
-import Network.XHR.ReadyState
+import Network.XHR.Types
 
 import Data.Maybe
 import Data.Foldable
@@ -34,10 +36,14 @@ type Query a = {|a}
 
 type OnReadyStateChange r = ReadyState -> Response -> EffAjax r Unit
 
-data Body r
-    = NoBody
-    | UrlEncoded {|r}
-    | Multipart  {|r}
+multipart :: forall a. {|a} -> Body I.FormData
+multipart a = Multipart $ I.encodeMultipart a
+
+urlEncoded :: forall a. {|a} -> Body String
+urlEncoded a = UrlEncoded $ I.encodeUrlParams a
+
+noBody :: forall a. Body a
+noBody = NoBody
 
 type AjaxOptions r =
     { method      :: String
@@ -147,9 +153,9 @@ ajax conf params body = do
         NoBody       -> I.send xhr
         UrlEncoded b -> do
             I.setRequestHeader "Content-Type" "application/x-www-form-urlencoded" xhr
-            I.sendWithBody (I.encodeUrlParams b) xhr
+            I.sendWithBody b xhr
         Multipart  b ->
-            I.sendWithBody (I.encodeMultipart b) xhr
+            I.sendWithBody b xhr
 
     return (XHRTask xhr)
 

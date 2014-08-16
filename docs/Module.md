@@ -6,11 +6,6 @@
 
     type AjaxOptions r = { onTimeout :: Response -> EffAjax r Unit, onReadyStateChange :: OnReadyStateChange r, onProgress :: Response -> EffAjax r Unit, onLoadEnd :: Response -> EffAjax r Unit, onLoad :: Response -> EffAjax r Unit, onError :: Response -> EffAjax r Unit, onAbort :: Response -> EffAjax r Unit, password :: String, user :: String, async :: Boolean, credentials :: Boolean, timeout :: Number, cache :: Boolean, headers :: [Tuple String String], url :: String, method :: String }
 
-    data Body r where
-      NoBody :: Body r
-      UrlEncoded :: {  | r } -> Body r
-      Multipart :: {  | r } -> Body r
-
     type EffAjax r = Eff (ajax :: I.Ajax | r)
 
     type OnReadyStateChange r = ReadyState -> Response -> EffAjax r Unit
@@ -59,6 +54,10 @@
 
     getStatusText :: forall r. Response -> EffAjax r String
 
+    multipart :: forall a. {  | a } -> Body I.FormData
+
+    noBody :: forall a. Body a
+
     onDone :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
 
     onHeaderReceived :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
@@ -73,10 +72,17 @@
 
     unsafeToResponse :: XHRTask -> Response
 
+    urlEncoded :: forall a. {  | a } -> Body String
 
-## Module Network.XHR.ReadyState
+
+## Module Network.XHR.Types
 
 ### Types
+
+    data Body a where
+      NoBody :: Body a
+      UrlEncoded :: a -> Body a
+      Multipart :: a -> Body a
 
     data ReadyState where
       UNSENT :: ReadyState
