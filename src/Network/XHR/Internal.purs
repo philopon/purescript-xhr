@@ -1,6 +1,6 @@
 module Network.XHR.Internal
     ( Ajax(..), EffAjax(..), OpenConfig(..)
-    , ReadyState(..), XHR(..), FormData(..)
+    , XHR(..), FormData(..)
 
     , newXMLHttpRequest
     , open, defaultOpenConfig
@@ -31,6 +31,8 @@ module Network.XHR.Internal
 
 import Control.Monad.Eff
 import Data.Function
+import Data.Maybe
+import Network.XHR.Types
 
 foreign import data XHR  :: *
 foreign import data FormData :: *
@@ -116,33 +118,6 @@ foreign import getResponseHeaderImpl "\
 getResponseHeader :: forall r. String -> XHR -> EffAjax r String
 getResponseHeader = runFn2 getResponseHeaderImpl
 
-data ReadyState
-    = UNSENT
-    | OPENED
-    | HEADERSRECEIVED
-    | LOADING
-    | DONE
-    | UNKNOWN Number
-
-instance eqReadyState :: Eq ReadyState where
-    (==) UNSENT UNSENT = true
-    (==) OPENED OPENED = true
-    (==) HEADERSRECEIVED HEADERSRECEIVED = true
-    (==) LOADING LOADING = true
-    (==) DONE DONE = true
-    (==) (UNKNOWN a) (UNKNOWN b) = a == b
-    (==) _ _ = false
-    (/=) a b = not (a == b)
-
-parseReadyState :: Number -> ReadyState
-parseReadyState i = case i of
-    0 -> UNSENT
-    1 -> OPENED
-    2 -> HEADERSRECEIVED
-    3 -> LOADING
-    4 -> DONE
-    i -> UNKNOWN i
-
 foreign import getterImpl "\
     \function getterImpl (prop, xhr) {\
     \   return function () {\
@@ -156,8 +131,24 @@ getReadyState xhr = parseReadyState <$> runFn2 getterImpl "readyState" xhr
 getResponseText :: forall r. XHR -> EffAjax r String
 getResponseText = runFn2 getterImpl "responseText"
 
-getResponseXML :: forall r. XHR -> EffAjax r String
-getResponseXML = runFn2 getterImpl "responseXML"
+type MaybeCtors a =
+    { just    :: a -> Maybe a
+    , nothing :: Maybe a
+    }
+
+foreign import getResponseXMLImpl "\
+    \function getResponseXMLImpl (ctor, xhr) {\
+    \   return function () {\
+    \       if (xhr.responseXML) {\
+    \           return ctor.just(xhr.responseXML);\
+    \       } else {\
+    \           return ctor.nothing;\
+    \       }\
+    \   }\
+    \}" :: forall r.  Fn2 (MaybeCtors String) XHR (EffAjax r (Maybe String))
+
+getResponseXML :: forall r. XHR -> EffAjax r (Maybe String)
+getResponseXML = runFn2 getResponseXMLImpl {just: Just, nothing: Nothing}
 
 getStatus :: forall r. XHR -> EffAjax r Number
 getStatus = runFn2 getterImpl "status"

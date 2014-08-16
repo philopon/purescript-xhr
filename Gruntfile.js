@@ -20,7 +20,7 @@ module.exports = function(grunt) {
     dotPsci: ["<%=libFiles%>"],
     docgen: {
         readme: {
-            src: "src/**/*.purs",
+            src: ["src/Network/XHR.purs", "src/Network/XHR/Types.purs"],
             dest: "docs/Module.md"
         }
     },
@@ -59,7 +59,7 @@ module.exports = function(grunt) {
         src: ["tests/Test.purs", "<%=libFiles%>"],
         dest: "tmp/tests.js"
       }
-    },
+    }
 
   });
 
