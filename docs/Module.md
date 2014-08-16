@@ -4,7 +4,7 @@
 
 ### Types
 
-    type AjaxOptions r = { onTimeout :: Response -> EffAjax r Unit, onReadyStateChange :: I.ReadyState -> Response -> EffAjax r Unit, onProgress :: Response -> EffAjax r Unit, onLoadEnd :: Response -> EffAjax r Unit, onLoad :: Response -> EffAjax r Unit, onError :: Response -> EffAjax r Unit, onAbort :: Response -> EffAjax r Unit, password :: String, user :: String, async :: Boolean, credentials :: Boolean, timeout :: Number, cache :: Boolean, headers :: [Tuple String String], url :: String, method :: String }
+    type AjaxOptions r = { onTimeout :: Response -> EffAjax r Unit, onReadyStateChange :: OnReadyStateChange r, onProgress :: Response -> EffAjax r Unit, onLoadEnd :: Response -> EffAjax r Unit, onLoad :: Response -> EffAjax r Unit, onError :: Response -> EffAjax r Unit, onAbort :: Response -> EffAjax r Unit, password :: String, user :: String, async :: Boolean, credentials :: Boolean, timeout :: Number, cache :: Boolean, headers :: [Tuple String String], url :: String, method :: String }
 
     data Body r where
       NoBody :: Body r
@@ -13,57 +13,70 @@
 
     type EffAjax r = Eff (ajax :: I.Ajax | r)
 
+    type OnReadyStateChange r = ReadyState -> Response -> EffAjax r Unit
+
+    type Query a = {  | a }
+
     newtype Response
 
     type URL  = String
 
+    newtype XHRTask
+
+
+### Type Classes
+
+    class HasReadyState a where
+      getReadyState :: forall r. a -> EffAjax r ReadyState
+
+
+### Type Class Instances
+
+    instance hasReadyStateResponse :: HasReadyState Response
+
+    instance hasReadyStateXHRTask :: HasReadyState XHRTask
+
 
 ### Values
 
-    ajax :: forall r a b. AjaxOptions r -> {  | a } -> Body b -> EffAjax r Unit
+    abort :: forall r. XHRTask -> EffAjax r Unit
+
+    ajax :: forall r a b. AjaxOptions r -> Query a -> Body b -> EffAjax r XHRTask
 
     defaultAjaxOptions :: forall r. AjaxOptions r
 
-    get :: forall r a. AjaxOptions r -> URL -> {  | a } -> EffAjax r Unit
+    get :: forall r a. AjaxOptions r -> URL -> Query a -> EffAjax r XHRTask
 
     getAllResponseHeaders :: forall r. Response -> EffAjax r String
-
-    getReadyState :: forall r. Response -> EffAjax r I.ReadyState
 
     getResponseHeader :: forall r. String -> Response -> EffAjax r String
 
     getResponseText :: forall r. Response -> EffAjax r String
 
-    getResponseXML :: forall r. Response -> EffAjax r String
+    getResponseXML :: forall r. Response -> EffAjax r (Maybe String)
 
     getStatus :: forall r. Response -> EffAjax r Number
 
     getStatusText :: forall r. Response -> EffAjax r String
 
-    onDone :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
+    onDone :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
 
-    onHeaderReceived :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
+    onHeaderReceived :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
 
-    onLoading :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
+    onLoading :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
 
-    onOpened :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
+    onOpened :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
 
-    onUnsent :: forall r. (Response -> EffAjax r Unit) -> I.ReadyState -> Response -> EffAjax r Unit
+    onUnsent :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
 
-    post :: forall r a b. AjaxOptions r -> URL -> {  | a } -> Body b -> EffAjax r Unit
+    post :: forall r a b. AjaxOptions r -> URL -> Query a -> Body b -> EffAjax r XHRTask
+
+    unsafeToResponse :: XHRTask -> Response
 
 
-## Module Network.XHR.Internal
+## Module Network.XHR.ReadyState
 
 ### Types
-
-    data Ajax :: !
-
-    type EffAjax r = Eff (ajax :: Ajax | r)
-
-    data FormData :: *
-
-    type OpenConfig  = { password :: String, user :: String, async :: Boolean, url :: String, method :: String }
 
     data ReadyState where
       UNSENT :: ReadyState
@@ -73,8 +86,6 @@
       DONE :: ReadyState
       UNKNOWN :: Number -> ReadyState
 
-    data XHR :: *
-
 
 ### Type Class Instances
 
@@ -83,54 +94,4 @@
 
 ### Values
 
-    abort :: forall r. XHR -> EffAjax r Unit
-
-    defaultOpenConfig :: OpenConfig
-
-    encodeMultipart :: forall r. {  | r } -> FormData
-
-    encodeUrlParams :: forall r. {  | r } -> String
-
-    getAllResponseHeaders :: forall r. XHR -> EffAjax r String
-
-    getReadyState :: forall r. XHR -> EffAjax r ReadyState
-
-    getResponseHeader :: forall r. String -> XHR -> EffAjax r String
-
-    getResponseText :: forall r. XHR -> EffAjax r String
-
-    getResponseXML :: forall r. XHR -> EffAjax r String
-
-    getStatus :: forall r. XHR -> EffAjax r Number
-
-    getStatusText :: forall r. XHR -> EffAjax r String
-
-    newXMLHttpRequest :: forall r. EffAjax r XHR
-
-    open :: forall r. OpenConfig -> XHR -> EffAjax r Unit
-
-    overrideMimeType :: forall r. String -> XHR -> EffAjax r Unit
-
-    send :: forall r. XHR -> EffAjax r Unit
-
-    sendWithBody :: forall a r. a -> XHR -> EffAjax r Unit
-
-    setOnAbort :: forall r. EffAjax r Unit -> XHR -> EffAjax r Unit
-
-    setOnError :: forall r. EffAjax r Unit -> XHR -> EffAjax r Unit
-
-    setOnLoad :: forall r. EffAjax r Unit -> XHR -> EffAjax r Unit
-
-    setOnLoadEnd :: forall r. EffAjax r Unit -> XHR -> EffAjax r Unit
-
-    setOnProgress :: forall r. EffAjax r Unit -> XHR -> EffAjax r Unit
-
-    setOnReadyStateChange :: forall r. EffAjax r Unit -> XHR -> EffAjax r Unit
-
-    setOnTimeout :: forall r. EffAjax r Unit -> XHR -> EffAjax r Unit
-
-    setRequestHeader :: forall r. String -> String -> XHR -> EffAjax r Unit
-
-    setTimeout :: forall r. Number -> XHR -> EffAjax r Unit
-
-    setWithCredentials :: forall r. Boolean -> XHR -> EffAjax r Unit
+    parseReadyState :: Number -> ReadyState

@@ -18,6 +18,10 @@ app.get('/api/param', function(req, res) {
   res.send('q param: ' + req.query.q);
 });
 
+app.get("/api/headers", function(req, res) {
+  res.send('X-Test-Header: ' + req.headers['x-test-header']);
+});
+
 app.post('/api/body', function(req, res) {
   res.send('q body: ' + req.body.q);
 });
