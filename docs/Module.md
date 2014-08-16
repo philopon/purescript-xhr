@@ -66,6 +66,8 @@
 
     onOpened :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
 
+    onSuccess :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
+
     onUnsent :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
 
     post :: forall r a b. AjaxOptions r -> URL -> Query a -> Body b -> EffAjax r XHRTask

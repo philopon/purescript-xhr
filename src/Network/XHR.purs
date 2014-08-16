@@ -16,7 +16,9 @@ module Network.XHR
 
     , get, post
 
-    , onUnsent, onOpened, onHeaderReceived, onLoading, onDone
+    , onUnsent, onOpened, onHeaderReceived
+    , onLoading, onDone, onSuccess
+
     , unsafeToResponse
     ) where
 
@@ -210,3 +212,10 @@ onDone act rs res =
     if rs == DONE
     then act res
     else return unit
+
+onSuccess :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
+onSuccess act rs res = do
+    st <- getStatus res
+    if rs == DONE && st == 200
+        then act res
+        else return unit
