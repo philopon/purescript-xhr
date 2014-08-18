@@ -2,7 +2,7 @@ module Network.XHR
     ( multipart, urlEncoded, noBody
     
     , AjaxOptions(..), Response(), URL(..)
-    , EffAjax(..), Query(), OnReadyStateChange(), XHRTask()
+    , EffAjax(..), Query(), Callback(), XHRTask()
     , HasReadyState
 
     , abort
@@ -36,7 +36,7 @@ type URL = String
 
 type Query a = {|a}
 
-type OnReadyStateChange r = ReadyState -> Response -> EffAjax r Unit
+type Callback r = Response -> EffAjax r Unit
 
 multipart :: forall a. {|a} -> Body I.FormData
 multipart a = Multipart $ I.encodeMultipart a
@@ -59,13 +59,13 @@ type AjaxOptions r =
     , user        :: String
     , password    :: String
     
-    , onAbort            :: Response -> EffAjax r Unit
-    , onError            :: Response -> EffAjax r Unit
-    , onLoad             :: Response -> EffAjax r Unit
-    , onLoadEnd          :: Response -> EffAjax r Unit
-    , onProgress         :: Response -> EffAjax r Unit
-    , onReadyStateChange :: OnReadyStateChange r
-    , onTimeout          :: Response -> EffAjax r Unit
+    , onAbort            :: Callback r
+    , onError            :: Callback r
+    , onLoad             :: Callback r
+    , onLoadEnd          :: Callback r
+    , onProgress         :: Callback r
+    , onReadyStateChange :: Callback r
+    , onTimeout          :: Callback r
     }
 
 newtype Response = Response I.XHR
@@ -100,13 +100,13 @@ defaultAjaxOptions =
     , user: ""
     , password: ""
 
-    , onAbort:            \_ ->   return unit
-    , onError:            \_ ->   return unit
-    , onLoad:             \_ ->   return unit
-    , onLoadEnd:          \_ ->   return unit
-    , onProgress:         \_ ->   return unit
-    , onReadyStateChange: \_ _ -> return unit
-    , onTimeout:          \_ ->   return unit
+    , onAbort:            \_ -> return unit
+    , onError:            \_ -> return unit
+    , onLoad:             \_ -> return unit
+    , onLoadEnd:          \_ -> return unit
+    , onProgress:         \_ -> return unit
+    , onReadyStateChange: \_ -> return unit
+    , onTimeout:          \_ -> return unit
     }
 
 newtype XHRTask = XHRTask I.XHR
@@ -143,8 +143,7 @@ ajax conf params body = do
     I.setOnProgress         (conf.onProgress (Response xhr)) xhr
     I.setOnTimeout          (conf.onTimeout  (Response xhr)) xhr
     I.setOnReadyStateChange ( do 
-        st <- I.getReadyState xhr
-        conf.onReadyStateChange st (Response xhr)
+        conf.onReadyStateChange (Response xhr)
         ) xhr
 
     -- set headers
@@ -183,39 +182,45 @@ get c u p = ajax c { method = "GET", url = u } p NoBody
 post :: forall r a b. AjaxOptions r -> URL -> Query a -> Body b -> EffAjax r XHRTask
 post conf u = ajax conf { method = "POST", url = u }
 
-onUnsent :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
-onUnsent act rs res = 
-    if rs == UNSENT
-    then act res
-    else return unit
+onUnsent :: forall r. Callback r -> Callback r
+onUnsent act res@(Response xhr) = do
+    rs <- I.getReadyState' xhr
+    if rs == 0
+        then act res
+        else return unit
 
-onOpened :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
-onOpened act rs res = 
-    if rs == OPENED
-    then act res
-    else return unit
+onOpened :: forall r. Callback r -> Callback r
+onOpened act res@(Response xhr) = do
+    rs <- I.getReadyState' xhr
+    if rs == 1
+        then act res
+        else return unit
 
-onHeaderReceived :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
-onHeaderReceived act rs res = 
-    if rs == HEADERSRECEIVED
-    then act res
-    else return unit
+onHeaderReceived :: forall r. Callback r -> Callback r
+onHeaderReceived act res@(Response xhr) = do
+    rs <- I.getReadyState' xhr
+    if rs == 2
+        then act res
+        else return unit
 
-onLoading :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
-onLoading act rs res = 
-    if rs == LOADING
-    then act res
-    else return unit
+onLoading :: forall r. Callback r -> Callback r
+onLoading act res@(Response xhr) = do
+    rs <- I.getReadyState' xhr
+    if rs == 3
+        then act res
+        else return unit
 
-onDone :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
-onDone act rs res = 
-    if rs == DONE
-    then act res
-    else return unit
+onDone :: forall r. Callback r -> Callback r
+onDone act res@(Response xhr) = do
+    rs <- I.getReadyState' xhr
+    if rs == 4
+        then act res
+        else return unit
 
-onSuccess :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
-onSuccess act rs res = do
+onSuccess :: forall r. Callback r -> Callback r
+onSuccess act res@(Response xhr) = do
+    rs <- I.getReadyState' xhr
     st <- getStatus res
-    if rs == DONE && st == 200
+    if rs == 4 && st == 200
         then act res
         else return unit

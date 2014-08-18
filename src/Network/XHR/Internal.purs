@@ -8,7 +8,7 @@ module Network.XHR.Internal
     , abort
 
     , getAllResponseHeaders, getResponseHeader
-    , getReadyState
+    , getReadyState, getReadyState'
     , getResponseText, getResponseXML
     , getStatus, getStatusText
 
@@ -125,8 +125,11 @@ foreign import getterImpl "\
     \   }\
     \}" :: forall r b. Fn2 String XHR (EffAjax r b)
 
+getReadyState' :: forall r. XHR -> EffAjax r Number
+getReadyState' = runFn2 getterImpl "readyState"
+
 getReadyState :: forall r. XHR -> EffAjax r ReadyState
-getReadyState xhr = parseReadyState <$> runFn2 getterImpl "readyState" xhr
+getReadyState xhr = parseReadyState <$> getReadyState' xhr
 
 getResponseText :: forall r. XHR -> EffAjax r String
 getResponseText = runFn2 getterImpl "responseText"
