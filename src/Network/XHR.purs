@@ -1,5 +1,5 @@
 module Network.XHR
-    ( multipart, urlEncoded, noBody
+    ( multipart, urlEncoded, noBody, rawBody
     
     , AjaxOptions(..), Response(), URL(..)
     , EffAjax(..), Query(), Callback(), XHRTask()
@@ -46,6 +46,9 @@ urlEncoded a = UrlEncoded $ I.encodeUrlParams a
 
 noBody :: forall a. Body a
 noBody = NoBody
+
+rawBody :: String -> Body String
+rawBody = RawBody
 
 type AjaxOptions r =
     { method      :: String
@@ -152,6 +155,8 @@ ajax conf params body = do
 
     case body of
         NoBody       -> I.send xhr
+        RawBody    b ->
+            I.sendWithBody b xhr
         UrlEncoded b -> do
             I.setRequestHeader "Content-Type" "application/x-www-form-urlencoded" xhr
             I.sendWithBody b xhr
