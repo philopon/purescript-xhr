@@ -29,6 +29,7 @@ parseReadyState i = case i of
 
 data Body a
     = NoBody
+    | RawBody a
     | UrlEncoded a
     | Multipart  a
 

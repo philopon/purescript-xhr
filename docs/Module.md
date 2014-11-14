@@ -72,6 +72,8 @@
 
     post :: forall r a b. AjaxOptions r -> URL -> Query a -> Body b -> EffAjax r XHRTask
 
+    rawBody :: String -> Body String
+
     unsafeToResponse :: XHRTask -> Response
 
     urlEncoded :: forall a. {  | a } -> Body String
@@ -82,9 +84,10 @@
 ### Types
 
     data Body a where
-      NoBody :: Body a
-      UrlEncoded :: a -> Body a
-      Multipart :: a -> Body a
+      NoBody :: Body
+      RawBody :: a -> Body
+      UrlEncoded :: a -> Body
+      Multipart :: a -> Body
 
     data ReadyState where
       UNSENT :: ReadyState

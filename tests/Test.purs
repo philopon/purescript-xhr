@@ -67,6 +67,14 @@ main = do
             task <- get defaultAjaxOptions{async = false} "/api/no_param" {}
             return unit
 
+        itAsync "rawbody" $ \done ->
+            post defaultAjaxOptions
+            { headers = [Tuple "Content-Type" "application/json"]
+            , onReadyStateChange = onDone $ \res -> do
+                checkLoadEnd (Just "q body: foo") "text/html; charset=utf-8" 200 "OK" res
+                itIs done
+            } "/api/body" {} (rawBody "{ \"q\": \"foo\"}")
+
         itAsync "additional headers" $ \done ->
             get defaultAjaxOptions
             { headers = [Tuple "X-Test-Header" "foo"]

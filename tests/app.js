@@ -1,7 +1,9 @@
 var express = require('express');
 var app = express();
+var bodyParser = require('body-parser')
 
-app.use(require('body-parser').urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
 app.use(require('connect-multiparty')());
 
 app.use(express.static(__dirname + '/static'));
