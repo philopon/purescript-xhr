@@ -4,17 +4,17 @@
 
 ### Types
 
-    type AjaxOptions r = { onTimeout :: Response -> EffAjax r Unit, onReadyStateChange :: OnReadyStateChange r, onProgress :: Response -> EffAjax r Unit, onLoadEnd :: Response -> EffAjax r Unit, onLoad :: Response -> EffAjax r Unit, onError :: Response -> EffAjax r Unit, onAbort :: Response -> EffAjax r Unit, password :: String, user :: String, async :: Boolean, credentials :: Boolean, timeout :: Number, cache :: Boolean, headers :: [Tuple String String], url :: String, method :: String }
+    type AjaxOptions r = { onTimeout :: Callback r, onReadyStateChange :: Callback r, onProgress :: Callback r, onLoadEnd :: Callback r, onLoad :: Callback r, onError :: Callback r, onAbort :: Callback r, password :: String, user :: String, async :: Boolean, credentials :: Boolean, timeout :: Number, cache :: Boolean, headers :: [Tuple String String], url :: String, method :: String }
+
+    type Callback r = Response -> EffAjax r Unit
 
     type EffAjax r = Eff (ajax :: I.Ajax | r)
-
-    type OnReadyStateChange r = ReadyState -> Response -> EffAjax r Unit
 
     type Query a = {  | a }
 
     newtype Response
 
-    type URL  = String
+    type URL = String
 
     newtype XHRTask
 
@@ -58,17 +58,17 @@
 
     noBody :: forall a. Body a
 
-    onDone :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
+    onDone :: forall r. Callback r -> Callback r
 
-    onHeaderReceived :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
+    onHeaderReceived :: forall r. Callback r -> Callback r
 
-    onLoading :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
+    onLoading :: forall r. Callback r -> Callback r
 
-    onOpened :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
+    onOpened :: forall r. Callback r -> Callback r
 
-    onSuccess :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
+    onSuccess :: forall r. Callback r -> Callback r
 
-    onUnsent :: forall r. (Response -> EffAjax r Unit) -> OnReadyStateChange r
+    onUnsent :: forall r. Callback r -> Callback r
 
     post :: forall r a b. AjaxOptions r -> URL -> Query a -> Body b -> EffAjax r XHRTask
 
@@ -84,10 +84,10 @@
 ### Types
 
     data Body a where
-      NoBody :: Body
-      RawBody :: a -> Body
-      UrlEncoded :: a -> Body
-      Multipart :: a -> Body
+      NoBody :: Body a
+      RawBody :: a -> Body a
+      UrlEncoded :: a -> Body a
+      Multipart :: a -> Body a
 
     data ReadyState where
       UNSENT :: ReadyState
