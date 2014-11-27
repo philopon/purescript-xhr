@@ -1,6 +1,6 @@
 {
   "name": "purescript-xhr",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "homepage": "https://github.com/philopon/purescript-xhr",
   "description": "XMLHttpRequest",
   "keywords": [
