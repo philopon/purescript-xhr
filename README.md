@@ -1,5 +1,9 @@
-purescript-xhr [![Build Status](https://travis-ci.org/philopon/purescript-xhr.svg?branch=master)](https://travis-ci.org/philopon/purescript-xhr)
+purescript-xhr
 ===
+[![Build Status](https://travis-ci.org/philopon/purescript-xhr.svg?branch=master)](https://travis-ci.org/philopon/purescript-xhr)
+[![Bower version](https://badge.fury.io/bo/purescript-xhr.svg)](http://badge.fury.io/bo/purescript-xhr)
+[![devDependency Status](https://david-dm.org/philopon/purescript-xhr/dev-status.svg)](https://david-dm.org/philopon/purescript-xhr#info=devDependencies)
+
 XMLHttpRequest binding for purescript.
 
 - [Module documentation](docs/Network/XHR.md)
