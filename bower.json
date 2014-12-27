@@ -19,12 +19,12 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-maybe":  "*",
-    "purescript-tuples": "*",
-    "purescript-foldable-traversable": "*"
+    "purescript-maybe": "~0.2.1",
+    "purescript-tuples": "~0.2.3",
+    "purescript-foldable-traversable": "~0.2.1"
   },
   "devDependencies": {
-    "purescript-mocha": "*",
-    "purescript-chai": "*"
+    "purescript-simple-assert": "~0.2.0",
+    "purescript-pspec": "~0.3.0"
   }
 }
