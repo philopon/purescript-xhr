@@ -2,7 +2,7 @@ purescript-xhr [![Build Status](https://travis-ci.org/philopon/purescript-xhr.sv
 ===
 XMLHttpRequest binding for purescript.
 
-- [Module documentation](docs/Module.md)
+- [Module documentation](docs/Network/XHR.md)
 
 USAGE
 ===

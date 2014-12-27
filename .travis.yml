@@ -1,15 +1,13 @@
 language: node_js
 node_js:
-  - "0.11"
-  - "0.10"
+  - '0.11'
 install:
-  - sudo add-apt-repository ppa:hvr/ghc -y
-  - sudo apt-get update -q
-  - sudo apt-get install cabal-install-1.20 ghc-7.8.3 zlib1g-dev libtinfo-dev
-  - export PATH=/opt/ghc/7.8.3/bin:$PATH
-  - cabal-1.20 update
-  - cabal-1.20 install Cabal cabal-install
-  - export PATH=~/.cabal/bin:$PATH
-  - cabal install purescript --force-reinstalls
+  - curl -L -O https://github.com/purescript/purescript/releases/download/v0.6.2/linux64.tar.gz
+  - tar xvf linux64.tar.gz
+  - export PATH=`pwd`/purescript:$PATH
   - npm install
   - bower update
+env:
+  global:
+  - secure: cPodTdrFrrFb+FPbR+W+ekyAZBh9/vYXw59faJYDiCFMd1q9tjuf8BXqkbw3cw2DIbKzCFyYjKm1KOaB76SSwSwR8R4nzimC+f1vHr3fecID1YJtBDkYwB1FD6BL6izEgT4a0KAZTK8zuYPODvzVp1Dkh5VeaTWboqFuUMOEz44=
+  - secure: N0p2JsjQKSeUqnLYoH6mAMIc1SdYJ7GxmpFfhfQ5BMLHiORJM2+haUk8fsFGgglqnrmUSawdErdvk/3F36d1SuiPY3c8NV8VAsHYvRVxRdyQY+r++0ewNar/rBf39UTcBBb6XW9/xwLJ6gmyefABoqwK//ZZ054u5RieIydJDQY=

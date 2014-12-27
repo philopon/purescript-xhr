@@ -81,7 +81,7 @@ getResponseHeader k   (Response xhr) = I.getResponseHeader k xhr
 getResponseText :: forall r. Response -> EffAjax r String
 getResponseText       (Response xhr) = I.getResponseText xhr
 
-getResponseXML :: forall r. Response -> EffAjax r (Maybe String)
+getResponseXML :: forall r. Response -> EffAjax r (Maybe I.XML)
 getResponseXML        (Response xhr) = I.getResponseXML xhr
 
 getStatus :: forall r. Response -> EffAjax r Number
