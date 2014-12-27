@@ -122,7 +122,7 @@ module.exports = function(config) {
       testName: 'purescript-xhr'
     },
 
-    captureTimeout: 120000,
+    captureTimeout: 1800000,
     customLaunchers: customLaunchers,
 
     // start these browsers
