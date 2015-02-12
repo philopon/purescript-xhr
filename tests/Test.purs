@@ -25,7 +25,7 @@ function xhrHas(key, xhr){
   main = do
     hasOnTimeout <- runFn2 xhrHas "ontimeout" <$> I.newXMLHttpRequest
     hasOnAbort   <- runFn2 xhrHas "onabort"   <$> I.newXMLHttpRequest
-    runMocha $ do
+    runMocha $ setTimeout 10000 $ do
       describe "Normal" $ do
         itAsync "no_param" $ \done ->
           get defaultAjaxOptions
